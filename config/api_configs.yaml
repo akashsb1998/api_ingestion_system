@@ -1,0 +1,40 @@
+apis:
+  - name: api1_fx_rates
+    base_url: https://api.fxrates.com/v1/rates
+    auth_type: bearer_token
+    rate_limit_rpm: 10          # very strict — 10 requests per minute
+    page_size: 100
+    pagination_type: cursor     # uses next_page_token
+    schedule: "*/15 * * * *"   # every 15 minutes
+    s3_prefix: source=fx_rates
+
+  - name: api2_trade_data
+    base_url: https://api.tradedata.com/v2/trades
+    auth_type: api_key
+    rate_limit_rpm: 60          # moderate — 1 request per second
+    page_size: 500
+    pagination_type: cursor
+    schedule: "@hourly"
+    s3_prefix: source=trade_data
+
+  - name: api3_ref_data
+    base_url: https://api.refdata.com/v1/instruments
+    auth_type: oauth2
+    rate_limit_rpm: 600         # generous — 10 requests per second
+    page_size: 1000
+    pagination_type: offset     # uses offset/limit instead of cursor
+    schedule: "@daily"
+    s3_prefix: source=ref_data
+
+s3:
+  bucket: raw-landing
+  region: ap-south-1
+
+dynamodb:
+  checkpoint_table: api_checkpoints
+  region: ap-south-1
+
+redis:
+  host: localhost               # in prod: ElastiCache endpoint
+  port: 6379
+  token_ttl_seconds: 60        # bucket refills every 60 seconds
